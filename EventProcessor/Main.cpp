@@ -6,19 +6,24 @@
 #include <iostream>
 
 #define MSEC_PROCESS_DELAY 100 // ms to wait between processing events waiting in the message queue
-#define SERVER_ADDR "tcp://127.0.0.1:7633"
+#define SERVER_ADDR_DEFAULT "tcp://127.0.0.1:7633"
 
 void ProcessItem(const GameMessage*);
 
-int main()
+int main(int argc, char *argv[])
 {
+	if (argc < 2)
+	{
+		std::cout << "No server address specified - using default (localhost:7633)" << std::endl;
+	}
+
 	// Protects access to the GameMessage queue that will be added to asynchronously
 	std::mutex mtx;
 	// Holds important GameMessages from the game server
 	std::queue<GameMessage*> q;
 
 	// Start the thread that will provide data to the GameMessage queue
-	DataProvider ddp(mtx, q, SERVER_ADDR);
+	DataProvider ddp(mtx, q, argc < 2 ? SERVER_ADDR_DEFAULT : argv[1]);
 	ddp.BeginListening();
 
 	// Main processing loop
